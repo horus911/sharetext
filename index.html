@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShareAll - Partage universel sans serveur</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 5px;
+            margin-bottom: 30px;
+            overflow-x: auto;
+        }
+
+        .tab {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px 20px;
+            text-align: center;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .tab.active {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .file-upload {
+            border: 2px dashed #e0e0e0;
+            border-radius: 15px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .file-upload:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .file-upload.dragover {
+            border-color: #667eea;
+            background: #f0f4ff;
+            transform: scale(1.02);
+        }
+
+        .file-upload input {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .upload-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+
+        .preview-area {
+            margin-top: 20px;
+            border-radius: 15px;
+            overflow: hidden;
+            background: #f8f9fa;
+            display: none;
+        }
+
+        .preview-area.show {
+            display: block;
+        }
+
+        .preview-content {
+            padding: 20px;
+        }
+
+        .preview-image, .preview-video {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 10px;
+            object-fit: contain;
+        }
+
+        .preview-file {
+            display: flex;
+            align-items: center;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .file-icon {
+            font-size: 2em;
+            margin-right: 15px;
+            color: #667eea;
+        }
+
+        .file-info h4 {
+            margin: 0 0 5px 0;
+            color: #333;
+        }
+
+        .file-info p {
+            margin: 0;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+
+        button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 140px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .secondary-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+        }
+
+        .success-btn {
+            background: linear-gradient(45deg, #00b894, #00a085);
+        }
+
+        .share-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 25px;
+            display: none;
+        }
+
+        .share-section.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .share-url {
+            word-break: break-all;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+            margin: 15px 0;
+            font-family: monospace;
+            font-size: 14px;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+
+        .saved-items {
+            margin-top: 30px;
+        }
+
+        .item-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .item-card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .item-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .item-type {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 15px;
+        }
+
+        .type-text { background: #e3f2fd; color: #1976d2; }
+        .type-image { background: #f3e5f5; color: #7b1fa2; }
+        .type-video { background: #e8f5e8; color: #388e3c; }
+        .type-file { background: #fff3e0; color: #f57c00; }
+
+        .item-title {
+            font-weight: 600;
+            color: #333;
+            flex: 1;
+        }
+
+        .item-date {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .item-preview {
+            margin-top: 10px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .item-thumbnail {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-left: 15px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        .size-warning {
+            background: #fff3cd;
+            color: #856404;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 14px;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .stats {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 ShareAll</h1>
+            <p>Partage universel sans serveur - Textes, Images, Vidéos et Fichiers</p>
+        </div>
+
+        <div class="main-content">
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-number" id="totalItems">0</div>
+                    <div class="stat-label">Éléments</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="totalShares">0</div>
+                    <div class="stat-label">Partages</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="totalSize">0 MB</div>
+                    <div class="stat-label">Taille totale</div>
+                </div>
+            </div>
+
+            <div class="alert" id="alert"></div>
+
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('text')">📝 Texte</div>
+                <div class="tab" onclick="switchTab('image')">🖼️ Image</div>
+                <div class="tab" onclick="switchTab('video')">🎥 Vidéo</div>
+                <div class="tab" onclick="switchTab('file')">📁 Fichier</div>
+            </div>
+
+            <!-- Onglet Texte -->
+            <div id="tab-text" class="tab-content active">
+                <div class="form-group">
+                    <label for="textTitle">Titre</label>
+                    <input type="text" id="textTitle" placeholder="Mon texte...">
+                </div>
+                <div class="form-group">
+                    <label for="textContent">Contenu</label>
+                    <textarea id="textContent" placeholder="Écrivez votre texte ici..."></textarea>
+                </div>
+            </div>
+
+            <!-- Onglet Image -->
+            <div id="tab-image" class="tab-content">
+                <div class="form-group">
+                    <label for="imageTitle">Titre de l'image</label>
+                    <input type="text" id="imageTitle" placeholder="Ma belle image...">
+                </div>
+                <div class="file-upload" onclick="document.getElementById('imageFile').click()">
+                    <div class="upload-icon">🖼️</div>
+                    <h3>Cliquez pour choisir une image</h3>
+                    <p>ou glissez-déposez ici</p>
+                    <p style="font-size: 12px; margin-top: 10px; color: #666;">
+                        Formats supportés: JPG, PNG, GIF, WebP
+                    </p>
+                    <input type="file" id="imageFile" accept="image/*" onchange="handleFileSelect(event, 'image')">
+                </div>
+                <div class="preview-area" id="imagePreview">
+                    <div class="preview-content">
+                        <img id="imagePreviewImg" class="preview-image">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Onglet Vidéo -->
+            <div id="tab-video" class="tab-content">
+                <div class="form-group">
+                    <label for="videoTitle">Titre de la vidéo</label>
+                    <input type="text" id="videoTitle" placeholder="Ma vidéo...">
+                </div>
+                <div class="file-upload" onclick="document.getElementById('videoFile').click()">
+                    <div class="upload-icon">🎥</div>
+                    <h3>Cliquez pour choisir une vidéo</h3>
+                    <p>ou glissez-déposez ici</p>
+                    <p style="font-size: 12px; margin-top: 10px; color: #666;">
+                        Formats supportés: MP4, WebM, AVI, MOV
+                    </p>
+                    <input type="file" id="videoFile" accept="video/*" onchange="handleFileSelect(event, 'video')">
+                </div>
+                <div class="preview-area" id="videoPreview">
+                    <div class="preview-content">
+                        <video id="videoPreviewVid" class="preview-video" controls></video>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Onglet Fichier -->
+            <div id="tab-file" class="tab-content">
+                <div class="form-group">
+                    <label for="fileTitle">Titre du fichier</label>
+                    <input type="text" id="fileTitle" placeholder="Mon document...">
+                </div>
+                <div class="file-upload" onclick="document.getElementById('anyFile').click()">
+                    <div class="upload-icon">📁</div>
+                    <h3>Cliquez pour choisir un fichier</h3>
+                    <p>ou glissez-déposez ici</p>
+                    <p style="font-size: 12px; margin-top: 10px; color: #666;">
+                        Tous types de fichiers acceptés
+                    </p>
+                    <input type="file" id="anyFile" onchange="handleFileSelect(event, 'file')">
+                </div>
+                <div class="preview-area" id="filePreview">
+                    <div class="preview-content">
+                        <div class="preview-file" id="filePreviewContent"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="size-warning" id="sizeWarning">
+                ⚠️ Attention: Les fichiers volumineux peuvent générer des liens très longs qui ne fonctionneront pas dans tous les navigateurs.
+                Recommandé: &lt; 1MB pour les images, &lt; 5MB pour les vidéos.
+            </div>
+
+            <div class="button-group">
+                <button onclick="saveItem()">💾 Sauvegarder</button>
+                <button onclick="generateShareLink()" class="secondary-btn">🔗 Créer un lien</button>
+                <button onclick="exportData()" class="success-btn">📤 Exporter</button>
+                <button onclick="importData()" class="success-btn">📥 Importer</button>
+            </div>
+
+            <div class="share-section" id="shareSection">
+                <h3>🎉 Lien de partage généré !</h3>
+                <p>Copiez ce lien pour partager votre contenu :</p>
+                <div class="share-url" id="shareUrl"></div>
+                <button onclick="copyShareLink()" class="success-btn">📋 Copier le lien</button>
+            </div>
+
+            <div class="saved-items">
+                <h3>📚 Éléments sauvegardés</h3>
+                <div id="itemsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <input type="file" id="importFile" accept=".json" style="display: none;" onchange="handleImport(event)">
+
+    <script>
+        let items = JSON.parse(localStorage.getItem('shareAllItems') || '[]');
+        let shareCount = parseInt(localStorage.getItem('shareCount') || '0');
+        let currentTab = 'text';
+        let currentFileData = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadFromUrl();
+            updateDisplay();
+            updateStats();
+            setupDragAndDrop();
+        });
+
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            // Mettre à jour les onglets
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            document.querySelector(`[onclick="switchTab('${tab}')"]`).classList.add('active');
+            document.getElementById(`tab-${tab}`).classList.add('active');
+            
+            // Reset des données
+            currentFileData = null;
+            document.querySelectorAll('.preview-area').forEach(p => p.classList.remove('show'));
+            document.getElementById('sizeWarning').style.display = 'none';
+        }
+
+        function handleFileSelect(event, type) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                currentFileData = {
+                    name: file.name,
+                    type: file.type,
+                    size: file.size,
+                    data: e.target.result
+                };
+
+                showPreview(type, currentFileData);
+                checkFileSize(file.size);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function showPreview(type, fileData) {
+            const previewArea = document.getElementById(`${type}Preview`);
+            
+            if (type === 'image') {
+                document.getElementById('imagePreviewImg').src = fileData.data;
+            } else if (type === 'video') {
+                document.getElementById('videoPreviewVid').src = fileData.data;
+            } else if (type === 'file') {
+                const content = document.getElementById('filePreviewContent');
+                content.innerHTML = `
+                    <div class="file-icon">${getFileIcon(fileData.type)}</div>
+                    <div class="file-info">
+                        <h4>${fileData.name}</h4>
+                        <p>${formatFileSize(fileData.size)} • ${fileData.type || 'Type inconnu'}</p>
+                    </div>
+                `;
+            }
+            
+            previewArea.classList.add('show');
+        }
+
+        function checkFileSize(size) {
+            const sizeWarning = document.getElementById('sizeWarning');
+            if (size > 1024 * 1024) { // > 1MB
+                sizeWarning.style.display = 'block';
+            } else {
+                sizeWarning.style.display = 'none';
+            }
+        }
+
+        function getFileIcon(type) {
+            if (type.startsWith('image/')) return '🖼️';
+            if (type.startsWith('video/')) return '🎥';
+            if (type.startsWith('audio/')) return '🎵';
+            if (type.includes('pdf')) return '📄';
+            if (type.includes('word') || type.includes('document')) return '📝';
+            if (type.includes('excel') || type.includes('spreadsheet')) return '📊';
+            if (type.includes('powerpoint') || type.includes('presentation')) return '📋';
+            if (type.includes('zip') || type.includes('rar')) return '🗜️';
+            return '📁';
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function saveItem() {
+            let item = {
+                id: Date.now(),
+                type: currentTab,
+                created: new Date().toLocaleString()
+            };
+
+            if (currentTab === 'text') {
+                const title = document.getElementById('textTitle').value.trim();
+                const content = document.getElementById('textContent').value.trim();
+                
+                if (!title || !content) {
+                    showAlert('Veuillez remplir le titre et le contenu', 'error');
+                    return;
+                }
+                
+                item.title = title;
+                item.content = content;
+                item.size = new Blob([content]).size;
+                
+            } else if (currentFileData) {
+                const titleField = document.getElementById(`${currentTab}Title`);
+                const title = titleField.value.trim() || currentFileData.name;
+                
+                item.title = title;
+                item.fileName = currentFileData.name;
+                item.fileType = currentFileData.type;
+                item.fileData = currentFileData.data;
+                item.size = currentFileData.size;
+                
+            } else {
+                showAlert('Veuillez sélectionner un fichier', 'error');
+                return;
+            }
+
+            items.unshift(item);
+            localStorage.setItem('shareAllItems', JSON.stringify(items));
+
+            showAlert('Élément sauvegardé avec succès !', 'success');
+            updateDisplay();
+            updateStats();
+            clearForm();
+        }
+
+        function generateShareLink() {
+            let data = {
+                type: currentTab,
+                shared: new Date().toLocaleString()
+            };
+
+            if (currentTab === 'text') {
+                const title = document.getElementById('textTitle').value.trim();
+                const content = document.getElementById('textContent').value.trim();
+                
+                if (!title || !content) {
+                    showAlert('Veuillez remplir le titre et le contenu', 'error');
+                    return;
+                }
+                
+                data.title = title;
+                data.content = content;
+                
+            } else if (currentFileData) {
+                const titleField = document.getElementById(`${currentTab}Title`);
+                const title = titleField.value.trim() || currentFileData.name;
+                
+                data.title = title;
+                data.fileName = currentFileData.name;
+                data.fileType = currentFileData.type;
+                data.fileData = currentFileData.data;
+                
+            } else {
+                showAlert('Veuillez sélectionner un fichier', 'error');
+                return;
+            }
+
+            try {
+                const encoded = btoa(encodeURIComponent(JSON.stringify(data)));
+                const shareUrl = `${window.location.origin}${window.location.pathname}?share=${encoded}`;
+
+                document.getElementById('shareUrl').textContent = shareUrl;
+                document.getElementById('shareSection').classList.add('show');
+
+                shareCount++;
+                localStorage.setItem('shareCount', shareCount.toString());
+                updateStats();
+
+                showAlert('Lien de partage généré !', 'success');
+            } catch (error) {
+                showAlert('Erreur: Le fichier est trop volumineux pour générer un lien', 'error');
+            }
+        }
+
+        function loadFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const shareData = urlParams.get('share');
+
+            if (shareData) {
+                try {
+                    const decoded = JSON.parse(decodeURIComponent(atob(shareData)));
+                    
+                    switchTab(decoded.type);
+                    
+                    if (decoded.type === 'text') {
+                        document.getElementById('textTitle').value = decoded.title;
+                        document.getElementById('textContent').value = decoded.content;
+                    } else {
+                        document.getElementById(`${decoded.type}Title`).value = decoded.title;
+                        
+                        if (decoded.fileData) {
+                            currentFileData = {
+                                name: decoded.fileName,
+                                type: decoded.fileType,
+                                data: decoded.fileData,
+                                size: decoded.fileData.length * 0.75 // Approximation base64
+                            };
+                            showPreview(decoded.type, currentFileData);
+                        }
+                    }
+                    
+                    showAlert(`Contenu partagé chargé : "${decoded.title}"`, 'success');
+                } catch (e) {
+                    showAlert('Erreur lors du chargement du contenu partagé', 'error');
+                }
+            }
+        }
+
+        function updateDisplay() {
+            const listElement = document.getElementById('itemsList');
+            
+            if (items.length === 0) {
+                listElement.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">Aucun élément sauvegardé</p>';
+                return;
+            }
+
+            listElement.innerHTML = items.map(item => {
+                let preview = '';
+                let thumbnail = '';
+                
+                if (item.type === 'text') {
+                    preview = item.content.substring(0, 100) + (item.content.length > 100 ? '...' : '');
+                } else {
+                    preview = `${item.fileName} (${formatFileSize(item.size)})`;
+                    
+                    if (item.type === 'image' && item.fileData) {
+                        thumbnail = `<img src="${item.fileData}" class="item-thumbnail" alt="Aperçu">`;
+                    }
+                }
+                
+                return `
+                    <div class="item-card" onclick="loadItem(${item.id})">
+                        <div class="item-header">
+                            <span class="item-type type-${item.type}">${getTypeLabel(item.type)}</span>
+                            <span class="item-title">${escapeHtml(item.title)}</span>
+                            <span class="item-date">${item.created}</span>
+                        </div>
+                        <div class="item-preview">${escapeHtml(preview)}</div>
+                        ${thumbnail}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getTypeLabel(type) {
+            const labels = {
+                text: '📝 Texte',
+                image: '🖼️ Image',
+                video: '🎥 Vidéo',
+                file: '📁 Fichier'
+            };
+            return labels[type] || type;
+        }
+
+        function loadItem(id) {
+            const item = items.find(i => i.id === id);
+            if (!item) return;
+
+            switchTab(item.type);
+
+            if (item.type === 'text') {
+                document.getElementById('textTitle').value = item.title;
+                document.getElementById('textContent').value = item.content;
+            } else {
+                document.getElementById(`${item.type}Title`).value = item.title;
+                
+                if (item.fileData) {
+                    currentFileData = {
+                        name: item.fileName,
+                        type: item.fileType,
+                        data: item.fileData,
+                        size: item.size
+                    };
+                    showPreview(item.type, currentFileData);
+                }
+            }
+
+            showAlert('Élément chargé !', 'success');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function updateStats() {
+            document.getElementById('totalItems').textContent = items.length;
+            document.getElementById('totalShares').textContent = shareCount;
+            
+            const totalSize = items.reduce((sum, item) => sum + (item.size || 0), 0);
+            document.getElementById('totalSize').textContent = formatFileSize(totalSize);
+        }
+
+        function setupDragAndDrop() {
+            const uploads = document.querySelectorAll('.file-upload');
+            
+            uploads.forEach(upload => {
+                upload.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    upload.classList.add('dragover');
+                });
+                
+                upload.addEventListener('dragleave', () => {
+                    upload.classList.remove('dragover');
+                });
+                
+                upload.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    upload.classList.remove('dragover');
+                    
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        const input = upload.querySelector('input[type="file"]');
+                        input.files = files;
+                        
+                        const type = input.id.replace('File', '');
+                        handleFileSelect({ target: { files: files } }, type);
+                    }
+                });
+            });
+        }
+
+        function exportData() {
+            const data = {
+                items: items,
+                shareCount: shareCount,
+                exportDate: new Date().toISOString()
+            };
+
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `shareall-export-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            showAlert('Données exportées !', 'success');
+        }
+
+        function importData() {
+            document.getElementById('importFile').click();
+        }
+
+        function handleImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.items && Array.isArray(data.items)) {
+                        items = [...items, ...data.items];
+                        if (data.shareCount) shareCount += data.shareCount;
+                        
+                        localStorage.setItem('shareAllItems', JSON.stringify(items));
+                        localStorage.setItem('shareCount', shareCount.toString());
+                        
+                        updateDisplay();
+                        updateStats();
+                        showAlert(`${data.items.length} éléments importés !`, 'success');
+                    } else {
+                        showAlert('Format de fichier invalide', 'error');
+                    }
+                } catch (error) {
+                    showAlert('Erreur lors de l\'importation', 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function copyShareLink() {
+            const shareUrl = document.getElementById('shareUrl').textContent;
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                showAlert('Lien copié dans le presse-papiers !', 'success');
+            }).catch(() => {
+                showAlert('Erreur lors de la copie', 'error');
+            });
+        }
+
+        function clearForm() {
+            document.getElementById('textTitle').value = '';
+            document.getElementById('textContent').value = '';
+            document.getElementById('imageTitle').value = '';
+            document.getElementById('videoTitle').value = '';
+            document.getElementById('fileTitle').value = '';
+            
+            document.getElementById('imageFile').value = '';
+            document.getElementById('videoFile').value = '';
+            document.getElementById('anyFile').value = '';
+            
+            document.querySelectorAll('.preview-area').forEach(p => p.classList.remove('show'));
+            document.getElementById('shareSection').classList.remove('show');
+            document.getElementById('sizeWarning').style.display = 'none';
+            
+            currentFileData = null;
+        }
+
+        function showAlert(message, type) {
+            const alert = document.getElementById('alert');
+            alert.textContent = message;
+            alert.className = `alert ${type} show`;
+            setTimeout(() => {
+                alert.classList.remove('show');
+            }, 3000);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Raccourcis clavier
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                if (e.key === 's') {
+                    e.preventDefault();
+                    saveItem();
+                } else if (e.key === 'l') {
+                    e.preventDefault();
+                    generateShareLink();
+                }
+            }
+        });
