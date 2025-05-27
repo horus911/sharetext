@@ -2,7 +2,7 @@
 
 Site de partage universel sans backend qui fonctionne entièrement côté client.
 
-🔗 **Accéder au site :** https://VOTRE-NOM.github.io/sharetext
+🔗 **Accéder au site :** https://horus911.github.io/sharetext/
 
 ## ✨ Fonctionnalités
 
