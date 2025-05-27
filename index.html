@@ -880,5 +880,114 @@
                         const input = upload.querySelector('input[type="file"]');
                         input.files = files;
                         
-                        const type = input.i
-</html>
+                        const type = input.id.replace('File', '');
+                        handleFileSelect({ target: { files: files } }, type);
+                    }
+                });
+            });
+        }
+
+        function exportData() {
+            const data = {
+                items: items,
+                shareCount: shareCount,
+                exportDate: new Date().toISOString()
+            };
+
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `shareall-export-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            showAlert('Données exportées !', 'success');
+        }
+
+        function importData() {
+            document.getElementById('importFile').click();
+        }
+
+        function handleImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.items && Array.isArray(data.items)) {
+                        items = [...items, ...data.items];
+                        if (data.shareCount) shareCount += data.shareCount;
+                        
+                        localStorage.setItem('shareAllItems', JSON.stringify(items));
+                        localStorage.setItem('shareCount', shareCount.toString());
+                        
+                        updateDisplay();
+                        updateStats();
+                        showAlert(`${data.items.length} éléments importés !`, 'success');
+                    } else {
+                        showAlert('Format de fichier invalide', 'error');
+                    }
+                } catch (error) {
+                    showAlert('Erreur lors de l\'importation', 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function copyShareLink() {
+            const shareUrl = document.getElementById('shareUrl').textContent;
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                showAlert('Lien copié dans le presse-papiers !', 'success');
+            }).catch(() => {
+                showAlert('Erreur lors de la copie', 'error');
+            });
+        }
+
+        function clearForm() {
+            document.getElementById('textTitle').value = '';
+            document.getElementById('textContent').value = '';
+            document.getElementById('imageTitle').value = '';
+            document.getElementById('videoTitle').value = '';
+            document.getElementById('fileTitle').value = '';
+            
+            document.getElementById('imageFile').value = '';
+            document.getElementById('videoFile').value = '';
+            document.getElementById('anyFile').value = '';
+            
+            document.querySelectorAll('.preview-area').forEach(p => p.classList.remove('show'));
+            document.getElementById('shareSection').classList.remove('show');
+            document.getElementById('sizeWarning').style.display = 'none';
+            
+            currentFileData = null;
+        }
+
+        function showAlert(message, type) {
+            const alert = document.getElementById('alert');
+            alert.textContent = message;
+            alert.className = `alert ${type} show`;
+            setTimeout(() => {
+                alert.classList.remove('show');
+            }, 3000);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Raccourcis clavier
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                if (e.key === 's') {
+                    e.preventDefault();
+                    saveItem();
+                } else if (e.key === 'l') {
+                    e.preventDefault();
+                    generateShareLink();
+                }
+            }
+        });
